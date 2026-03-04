@@ -25,7 +25,7 @@ werkzeug_logger.setLevel(logging.INFO)
 # Minimum transaction amount (in rupees) enforced for all debit transactions
 MIN_TXN_AMOUNT = 20
 # Maximum transaction amount (in rupees) enforced for all debit transactions
-MAX_TXN_AMOUNT = 50000
+MAX_TXN_AMOUNT = 20000
 # Supported UPI purpose codes. Extend as needed.
 PURPOSE_CODES = {
     "44": "Utility Payments",  # Added per change manifest
