@@ -1,0 +1,19 @@
+# Phase 2 Requirements - AI Agents for Spec Change → Code Update → Deployment
+
+# Core LangChain dependencies
+langchain>=0.1.0
+langchain-openai>=0.0.5
+langchain-core>=0.1.0
+langgraph>=0.0.20
+
+# Web framework
+flask>=3.0.3
+
+# HTTP client
+requests>=2.31.0
+
+# XML processing (for XSD handling)
+lxml>=5.0.0
+
+# Environment variables
+python-dotenv>=1.0.0

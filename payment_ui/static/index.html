@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UPI Payment Simulator</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-wrapper">
+        <!-- Left Panel - Payment Interface -->
+        <div class="payment-panel">
+            <!-- Header -->
+            <header class="app-header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <div class="logo">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+                                <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                                <path d="M2 17l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                                <path d="M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <div class="header-title">
+                            <h1>UPI Simulator</h1>
+                            <p class="user-info" id="current-user">Select account</p>
+                        </div>
+                    </div>
+                    <button class="user-btn" onclick="showUserSelector()" title="Switch Account">
+                        <span id="user-avatar">?</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Main Content -->
+            <main class="main-content" id="main-content">
+                <!-- User Selector Screen -->
+                <div class="screen" id="user-selector-screen">
+                    <div class="screen-header">
+                        <h2>Select Account</h2>
+                        <p>Choose your payer account</p>
+                    </div>
+                    <div class="user-list" id="user-list">
+                        <!-- Users will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Contacts Screen -->
+                <div class="screen" id="contacts-screen" style="display: none;">
+                    <div class="screen-header">
+                        <h2>Pay to Contact</h2>
+                        <p>Select recipient</p>
+                    </div>
+                    <div class="contacts-grid" id="contacts-grid">
+                        <!-- Contacts will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Payment Screen -->
+                <div class="screen" id="payment-screen" style="display: none;">
+                    <div class="payment-container">
+                        <button class="back-btn" onclick="showContactsScreen()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            <span>Back</span>
+                        </button>
+                        
+                        <div class="payee-info">
+                            <div class="payee-avatar" id="payee-avatar">👤</div>
+                            <h3 id="payee-name">Contact Name</h3>
+                            <p id="payee-vpa">vpa@psp</p>
+                        </div>
+
+                        <div class="amount-section">
+                            <span class="currency-symbol">₹</span>
+                            <input 
+                                type="number" 
+                                id="amount-input" 
+                                class="amount-input" 
+                                placeholder="0"
+                                step="0.01"
+                                autocomplete="off"
+                            >
+                        </div>
+
+                        <div class="quick-amounts">
+                            <button class="quick-amount-btn" onclick="setAmount(100)">₹100</button>
+                            <button class="quick-amount-btn" onclick="setAmount(500)">₹500</button>
+                            <button class="quick-amount-btn" onclick="setAmount(1000)">₹1K</button>
+                            <button class="quick-amount-btn" onclick="setAmount(5000)">₹5K</button>
+                        </div>
+
+                        <div class="pin-section">
+                            <label for="pin-input">UPI PIN</label>
+                            <input 
+                                type="password" 
+                                id="pin-input" 
+                                class="pin-input" 
+                                placeholder="Enter PIN"
+                                maxlength="6"
+                                inputmode="numeric"
+                                autocomplete="off"
+                            >
+                        </div>
+
+                        <div class="payment-actions">
+                            <button class="preview-xml-btn" onclick="previewReqPayXML()" id="preview-xml-btn">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="2"/>
+                                    <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                                <span>Preview XML</span>
+                            </button>
+                            <button class="pay-btn" onclick="processPayment()" id="pay-btn">
+                                <span class="btn-text">Pay Now</span>
+                                <div class="btn-spinner"></div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transaction History Screen -->
+                <div class="screen" id="history-screen" style="display: none;">
+                    <div class="screen-header">
+                        <button class="back-btn" onclick="showContactsScreen()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            <span>Back</span>
+                        </button>
+                        <h2>Transaction History</h2>
+                    </div>
+                    <div class="history-list" id="history-list">
+                        <div class="empty-state">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+                                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5" opacity="0.3"/>
+                                <path d="M12 7v5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.3"/>
+                            </svg>
+                            <p>No transactions yet</p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Bottom Navigation -->
+            <nav class="bottom-nav" id="bottom-nav" style="display: none;">
+                <button class="nav-item active" onclick="showContactsScreen()">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    </svg>
+                    <span>Pay</span>
+                </button>
+                <button class="nav-item" onclick="showHistoryScreen()">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
+                    </svg>
+                    <span>History</span>
+                </button>
+            </nav>
+        </div>
+
+        <!-- Right Panel - Transaction Timeline -->
+        <div class="timeline-panel" id="timeline-panel">
+            <div class="timeline-header">
+                <div class="timeline-header-content">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 8v4l3 3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    <h2>Transaction Flow</h2>
+                </div>
+                <button class="clear-timeline-btn" onclick="clearTimeline()" title="Clear Timeline">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="timeline-content" id="timeline-content">
+                <div class="timeline-empty">
+                    <div class="timeline-empty-icon">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.5" opacity="0.3"/>
+                            <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="1.5" opacity="0.3"/>
+                        </svg>
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" class="arrow-icon">
+                            <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.3"/>
+                        </svg>
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
+                            <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5" opacity="0.3"/>
+                            <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.3"/>
+                        </svg>
+                    </div>
+                    <p>Transaction steps will appear here</p>
+                    <span>Complete a payment to see the UPI flow with XML messages</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <div class="toast-icon" id="toast-icon"></div>
+        <div class="toast-message" id="toast-message"></div>
+    </div>
+
+    <!-- Success Animation Overlay -->
+    <div class="success-overlay" id="success-overlay">
+        <div class="success-animation">
+            <div class="success-checkmark">
+                <svg width="80" height="80" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="#0d9488" stroke-width="2"/>
+                    <path d="M8 12l3 3 5-5" stroke="#0d9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <h2>Payment Successful!</h2>
+            <p id="success-amount">₹0</p>
+            <p id="success-to">to Contact</p>
+        </div>
+    </div>
+
+    <!-- XML Editor Modal -->
+    <div class="xml-modal" id="xml-modal">
+        <div class="xml-modal-content">
+            <div class="xml-modal-header">
+                <div class="xml-modal-title">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" stroke-width="2"/>
+                        <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <div>
+                        <h3>ReqPay XML Preview</h3>
+                        <p>Review and edit the XML before sending</p>
+                    </div>
+                </div>
+                <button class="xml-modal-close" onclick="closeXMLModal()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="xml-modal-body">
+                <div class="xml-editor-container">
+                    <div class="xml-editor-toolbar">
+                        <span class="xml-editor-label">Transaction ID: <code id="xml-txn-id">-</code></span>
+                        <button class="xml-copy-btn" onclick="copyXMLToClipboard()" title="Copy XML">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                                <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="2"/>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                            Copy
+                        </button>
+                    </div>
+                    <textarea id="xml-editor" class="xml-editor" spellcheck="false"></textarea>
+                </div>
+            </div>
+            <div class="xml-modal-footer">
+                <button class="xml-modal-btn xml-modal-btn-secondary" onclick="closeXMLModal()">
+                    Cancel
+                </button>
+                <button class="xml-modal-btn xml-modal-btn-primary" onclick="sendEditedXML()" id="send-xml-btn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                        <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span class="btn-text">Send Payment</span>
+                    <div class="btn-spinner"></div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

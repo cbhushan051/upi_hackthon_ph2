@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ReqPay xmlns="http://npci.org/upi/schema/">
+  <Head ver="2.0" ts="2024-01-15T10:00:00" orgId="PAYER_PSP" msgId="pay-1" prodType="UPI"/>
+  <Txn id="txn-pay-1" type="PAY" purpose="PAY"/>
+  <Payer addr="Chandra@paytm" name="Chandra">
+    <Amount value="100.00" curr="INR"/>
+  </Payer>
+  <Payees>
+    <Payee addr="Gaurang@phonepe" name="Gaurang"/>
+  </Payees>
+</ReqPay>
