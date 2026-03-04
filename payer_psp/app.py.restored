@@ -1,0 +1,187 @@
+import logging
+import os
+import xml.etree.ElementTree as ET
+import requests
+from flask import Flask, jsonify, request, Response
+
+from db import init_db, seed_sample_users, User
+
+logging.basicConfig(level=logging.INFO, format="%(message)s")
+logger = logging.getLogger(__name__)
+app = Flask(__name__)
+NS = "http://npci.org/upi/schema/"
+NPCI_URL = os.environ.get("NPCI_URL", "http://npci:5000")
+_session_factory = None
+
+
+def _qname(tag: str) -> str:
+    return f"{{{NS}}}{tag}"
+
+
+def _startup() -> None:
+    global _session_factory
+    _session_factory = init_db()
+    with _session_factory() as session:
+        seed_sample_users(session)
+
+
+def _ensure_session():
+    global _session_factory
+    if _session_factory is None:
+        _startup()
+
+
+@app.get("/health")
+def health() -> tuple[dict, int]:
+    return jsonify(status="ok"), 200
+
+
+@app.post("/api/reqvaladd")
+def reqvaladd() -> tuple[Response | dict, int]:
+    """
+    Forward ReqValAdd to NPCI; receive RespValAdd from NPCI (routed by NPCI from Payee PSP)
+    and return to client. Req: upi_req_valadd.xsd; Resp: upi_resp_valadd.xsd.
+    """
+    if not request.data:
+        return jsonify(error="Missing body"), 400
+    ct = request.content_type or ""
+    if "xml" not in ct and "application/octet-stream" not in ct:
+        return jsonify(error="Content-Type must be application/xml or text/xml"), 415
+    try:
+        r = requests.post(
+            f"{NPCI_URL.rstrip('/')}/api/reqvaladd",
+            data=request.data,
+            headers={"Content-Type": "application/xml"},
+            timeout=30,
+        )
+    except requests.RequestException as e:
+        return jsonify(error=f"NPCI unreachable: {e}"), 502
+    return Response(
+        r.content,
+        status=r.status_code,
+        mimetype=r.headers.get("Content-Type", "application/xml"),
+    )
+
+
+@app.post("/api/reqpay")
+def reqpay() -> tuple[Response | dict, int]:
+    """
+    Forward ReqPay XML to NPCI.
+    Note: PIN validation is also performed at the remitter bank.
+    Schema: common/schemas/upi_pay_request.xsd
+    """
+    if not request.data:
+        return jsonify(error="Missing body"), 400
+    ct = request.content_type or ""
+    if "xml" not in ct and "application/octet-stream" not in ct:
+        return jsonify(error="Content-Type must be application/xml or text/xml"), 415
+    
+    _ensure_session()
+    
+    # Forward the XML as is (including Creds for remitter bank verification)
+    try:
+        root = ET.fromstring(request.data)
+        q = lambda n: f".//{{{NS}}}{n}"
+        
+        # Extract payer VPA, PIN, and Amount
+        payer = root.find(q("Payer"))
+        if payer is None:
+            return jsonify(error="Invalid ReqPay: missing Payer element"), 400
+        
+        payer_vpa = (payer.get("addr") or "").strip()
+        if not payer_vpa:
+            return jsonify(error="Invalid ReqPay: missing Payer.addr"), 400
+
+        # Extract Amount
+        amt_el = payer.find(q("Amount"))
+        if amt_el is None:
+            return jsonify(error="Invalid ReqPay: missing Amount element"), 400
+        amount = float(amt_el.get("value") or 0)
+        
+        # Immediate Amount Validation: Must be >= 1.0
+        if amount < 1.0:
+            logger.info(f"[payer_psp] Validation failed: Amount {amount} is below minimum (1.0)")
+            return jsonify(error="INVALID_AMOUNT", details="Minimum transaction amount is INR 1.00"), 400
+
+        # Extract PIN from Creds
+        provided_pin = None
+        creds = payer.find(q("Creds"))
+        if creds is not None:
+            cred = creds.find(q("Cred"))
+            if cred is not None and cred.get("type") == "PIN":
+                data = cred.find(q("Data"))
+                if data is not None and data.text:
+                    provided_pin = data.text.strip()
+        
+        if not provided_pin:
+            logger.info(f"[payer_psp] Validation failed: PIN not provided for {payer_vpa}")
+            return jsonify(error="MISSING_PIN", details="UPI PIN is required"), 400
+
+        # Validate PIN against DB
+        with _session_factory() as session:
+            user = session.query(User).filter_by(vpa=payer_vpa).one_or_none()
+            if not user:
+                logger.info(f"[payer_psp] Validation failed: User not found for VPA {payer_vpa}")
+                return jsonify(error="PAYER_NOT_FOUND"), 400
+            
+            if user.pin != provided_pin:
+                logger.info(f"[payer_psp] Validation failed: Incorrect PIN for {payer_vpa}")
+                return jsonify(error="INVALID_PIN", details="The entered UPI PIN is incorrect"), 400
+
+        logger.info(f"[payer_psp] Validated ReqPay for {payer_vpa} | Amount: {amount} | PIN: OK")
+            
+        xml_str = ET.tostring(root, encoding="unicode", method="xml")
+        forward_xml = ('<?xml version="1.0" encoding="UTF-8"?>\n' + xml_str).encode("utf-8")
+        
+    except ET.ParseError as e:
+        return jsonify(error=f"Invalid XML: {e}"), 400
+    except Exception as e:
+        logger.error(f"[payer_psp] Error processing ReqPay: {e}")
+        return jsonify(error=f"Internal error: {e}"), 500
+    
+    # Forward XML to NPCI
+    try:
+        r = requests.post(
+            f"{NPCI_URL.rstrip('/')}/api/reqpay",
+            data=forward_xml,
+            headers={"Content-Type": "application/xml"},
+            timeout=30,
+        )
+    except requests.RequestException as e:
+        return jsonify(error=f"NPCI unreachable: {e}"), 502
+    
+    return Response(
+        r.content,
+        status=r.status_code,
+        mimetype=r.headers.get("Content-Type", "application/xml"),
+    )
+
+
+@app.post("/api/resppay")
+def resppay() -> tuple[dict, int]:
+    """
+    Receive final RespPay from NPCI: transaction completed (debit at rem_bank, credit at bene_bank).
+    Schema: common/schemas/upi_resppay_response.xsd. Accept and return 200.
+    """
+    if not request.data:
+        return jsonify(error="Missing body"), 400
+    # Optional: parse for logging
+    try:
+        root = ET.fromstring(request.data)
+        def q(tag):
+            return f".//{{{NS}}}{tag}"
+        resp = root.find(q("Resp"))
+        txn = root.find(q("Txn"))
+        req_msg_id = resp.get("reqMsgId") if resp is not None else None
+        result = resp.get("result") if resp is not None else None
+        txn_type = txn.get("type") if txn is not None else None
+        logger.info("[payer_psp] Received final RespPay from NPCI | reqMsgId=%s | result=%s | Txn.type=%s", req_msg_id, result, txn_type)
+    except (ET.ParseError, AttributeError):
+        logger.info("[payer_psp] Received RespPay from NPCI (parse skipped)")
+    return jsonify(status="received", result="SUCCESS"), 200
+
+
+if __name__ == "__main__":
+    _startup()
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UPI AI Orchestrator</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <h1>UPI Ecosystem AI Orchestrator</h1>
+                <p class="subtitle">Automated Specification Change Management System</p>
+            </div>
+            <div class="status-badge" id="system-status">System Online</div>
+        </header>
+
+        <main>
+            <section class="deploy-section">
+                <div class="card">
+                    <h2>🚀 Deploy New Change</h2>
+                    <p class="description">Describe the specification change you want to implement. The AI agents will handle the rest.</p>
+                    
+                    <div class="input-group">
+                        <textarea id="change-prompt" placeholder="e.g., Implement a minimum transaction amount validation of INR 50 for all UPI transactions..."></textarea>
+                    </div>
+                    
+                    <div class="action-row">
+                        <div class="settings">
+                            <label>
+                                <input type="checkbox" id="validation-rule" checked> 
+                                Validation Rule
+                            </label>
+                            <label>
+                                <input type="checkbox" id="api-change"> 
+                                API Change
+                            </label>
+                        </div>
+                        <button id="deploy-btn" onclick="deployChange()">
+                            <span class="btn-text">Initialize Agents</span>
+                            <div class="spinner"></div>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="live-feed">
+                <div class="section-header">
+                    <h2>📡 Live Operations</h2>
+                    <div class="header-actions">
+                        <div class="info-badge">Click Refresh to see updates</div>
+                        <button class="refresh-btn" id="refresh-btn" onclick="handleRefresh()">
+                            <span id="refresh-text">🔄 Refresh Status</span>
+                            <span id="refresh-spinner" class="refresh-spinner" style="display:none;">⟳</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="changes-container">
+                    <!-- Changes will be injected here -->
+                    <div class="empty-state">
+                        Waiting for new changes...
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

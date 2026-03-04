@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:upi="http://npci.org/upi/schema/"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://npci.org/upi/schema/"
+           elementFormDefault="qualified">
+
+  <!-- Root element -->
+  <xs:element name="RespPay">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Head" type="upi:HeadType"/>
+        <xs:element name="Txn" type="upi:TxnType"/>
+        <xs:element name="Resp" type="upi:RespType"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- Head -->
+  <xs:complexType name="HeadType">
+    <xs:attribute name="ver" type="xs:string" use="required"/>
+    <xs:attribute name="ts" type="xs:string" use="required"/>
+    <xs:attribute name="orgId" type="xs:string" use="required"/>
+    <xs:attribute name="msgId" type="xs:string" use="required"/>
+    <xs:attribute name="prodType" type="xs:string" use="required"/>
+  </xs:complexType>
+ 
+  <!-- Txn -->
+  <xs:complexType name="TxnType">
+    <xs:sequence>
+      <xs:element name="RiskScores" type="upi:RiskScoresType" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="xs:string" use="required"/>
+    <xs:attribute name="note" type="xs:string" use="optional"/>
+    <xs:attribute name="refId" type="xs:string" use="optional"/>
+    <xs:attribute name="custRef" type="xs:string" use="optional"/>
+    <xs:attribute name="refUrl" type="xs:string" use="optional"/>
+    <xs:attribute name="ts" type="xs:string" use="optional"/>
+    <xs:attribute name="purpose" type="xs:string" use="optional"/>
+    <xs:attribute name="type" type="xs:string" use="required"/>
+    <xs:attribute name="initiationMode" type="xs:string" use="optional"/>
+    <xs:attribute name="orgTxnId" type="xs:string" use="optional"/>
+    <xs:attribute name="refCategory" type="xs:string" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="RiskScoresType">
+    <xs:sequence>
+      <xs:element name="Score" type="upi:ScoreType" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="ScoreType">
+    <xs:attribute name="provider" type="xs:string" use="optional"/>
+    <xs:attribute name="type" type="xs:string" use="optional"/>
+    <xs:attribute name="value" type="xs:string" use="optional"/>
+  </xs:complexType>
+
+  <!-- Resp -->
+  <xs:complexType name="RespType">
+    <xs:sequence>
+      <xs:element name="Ref" type="upi:RefType" minOccurs="0" maxOccurs="unbounded"/>
+      <xs:element name="Consent" type="upi:ConsentType" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="reqMsgId" type="xs:string" use="optional"/>
+    <xs:attribute name="result" type="xs:string" use="optional"/>
+    <xs:attribute name="errCode" type="xs:string" use="optional"/>
+    <xs:attribute name="actn" type="xs:string" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="RefType">
+    <xs:attribute name="type" type="xs:string" use="optional"/>
+    <xs:attribute name="seqNum" type="xs:string" use="optional"/>
+    <xs:attribute name="addr" type="xs:string" use="optional"/>
+    <xs:attribute name="regName" type="xs:string" use="optional"/>
+    <xs:attribute name="acNum" type="xs:string" use="optional"/>
+    <xs:attribute name="IFSC" type="xs:string" use="optional"/>
+    <xs:attribute name="code" type="xs:string" use="optional"/>
+    <xs:attribute name="accType" type="xs:string" use="optional"/>
+    <xs:attribute name="settAmount" type="xs:string" use="optional"/>
+    <xs:attribute name="orgAmount" type="xs:string" use="optional"/>
+    <xs:attribute name="settCurrency" type="xs:string" use="optional"/>
+    <xs:attribute name="approvalNum" type="xs:string" use="optional"/>
+    <xs:attribute name="respCode" type="xs:string" use="optional"/>
+    <xs:attribute name="reversalRespCode" type="xs:string" use="optional"/>
+    <xs:attribute name="balAmt" type="xs:string" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="ConsentType">
+    <xs:attribute name="name" type="xs:string" use="optional"/>
+    <xs:attribute name="type" type="xs:string" use="optional"/>
+    <xs:attribute name="value" type="xs:string" use="optional"/>
+  </xs:complexType>
+
+</xs:schema>

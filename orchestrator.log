@@ -1,0 +1,11 @@
+2026-01-27 15:31:29,895 - __main__ - INFO - [Orchestrator] Loaded state from orchestrator_state.json (3 changes)
+2026-01-27 15:31:29,897 - __main__ - INFO - [Orchestrator] Starting on 0.0.0.0:8081
+2026-01-27 15:31:29,897 - __main__ - INFO - [Orchestrator] Static folder: /mnt/nvme-storage/Gaurang/upi-ai-main/orchestrator/static
+2026-01-27 15:31:29,897 - __main__ - INFO - [Orchestrator] Static URL path: /static
+ * Serving Flask app 'orchestrator'
+ * Debug mode: off
+2026-01-27 15:31:29,899 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8081
+ * Running on http://192.168.1.121:8081
+2026-01-27 15:31:29,899 - werkzeug - INFO - [33mPress CTRL+C to quit[0m

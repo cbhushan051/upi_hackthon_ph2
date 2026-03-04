@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:upi="http://npci.org/upi/schema/"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://npci.org/upi/schema/"
+           elementFormDefault="qualified">
+
+  <xs:element name="ReqValAdd">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Head" type="upi:HeadType"/>
+        <xs:element name="Txn" type="upi:ValAddTxnType"/>
+        <xs:element name="Payer" type="upi:SimplePartyType" minOccurs="0"/>
+        <xs:element name="Payee" type="upi:SimplePartyType"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- Common: Head -->
+  <xs:complexType name="HeadType">
+    <xs:attribute name="ver" type="xs:string" use="required"/>
+    <xs:attribute name="ts" type="xs:string" use="required"/>
+    <xs:attribute name="orgId" type="xs:string" use="required"/>
+    <xs:attribute name="msgId" type="xs:string" use="required"/>
+    <xs:attribute name="prodType" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <!-- Txn for ValAdd -->
+  <xs:complexType name="ValAddTxnType">
+    <xs:attribute name="id" type="xs:string" use="required"/>
+    <xs:attribute name="type" type="xs:string" use="required"/>
+    <xs:attribute name="ts" type="xs:string" use="optional"/>
+    <xs:attribute name="note" type="xs:string" use="optional"/>
+    <xs:attribute name="custRef" type="xs:string" use="optional"/>
+    <xs:attribute name="refId" type="xs:string" use="optional"/>
+    <xs:attribute name="refUrl" type="xs:string" use="optional"/>
+  </xs:complexType>
+
+  <!-- Minimal party (Payer/Payee) used in ValAdd -->
+  <xs:complexType name="SimplePartyType">
+    <xs:sequence>
+      <xs:element name="Info" type="upi:InfoType" minOccurs="0"/>
+      <xs:element name="Device" type="upi:DeviceType" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="addr" type="xs:string" use="required"/>
+    <xs:attribute name="name" type="xs:string" use="optional"/>
+    <xs:attribute name="seqNum" type="xs:string" use="optional"/>
+    <xs:attribute name="type" type="xs:string" use="optional"/>
+    <xs:attribute name="code" type="xs:string" use="optional"/>
+  </xs:complexType>
+
+  <!-- Subtypes (kept minimal and compatible with usage) -->
+  <xs:complexType name="InfoType">
+    <xs:sequence>
+      <xs:element name="Identity" minOccurs="0">
+        <xs:complexType>
+          <xs:attribute name="id" type="xs:string"/>
+          <xs:attribute name="type" type="xs:string"/>
+          <xs:attribute name="verifiedName" type="xs:string"/>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="DeviceType">
+    <xs:sequence>
+      <xs:element name="Tag" minOccurs="0" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:attribute name="name" type="xs:string"/>
+          <xs:attribute name="value" type="xs:string"/>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+</xs:schema>

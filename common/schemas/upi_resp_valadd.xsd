@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:upi="http://npci.org/upi/schema/"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           targetNamespace="http://npci.org/upi/schema/"
+           elementFormDefault="qualified">
+
+  <xs:element name="RespValAdd">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="Head" type="upi:HeadType"/>
+        <xs:element name="Txn" type="upi:ValAddTxnType"/>
+        <xs:element name="Resp" type="upi:RespType"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- Common: Head -->
+  <xs:complexType name="HeadType">
+    <xs:attribute name="ver" type="xs:string" use="required"/>
+    <xs:attribute name="ts" type="xs:string" use="required"/>
+    <xs:attribute name="orgId" type="xs:string" use="required"/>
+    <xs:attribute name="msgId" type="xs:string" use="required"/>
+    <xs:attribute name="prodType" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <!-- Txn for ValAdd -->
+  <xs:complexType name="ValAddTxnType">
+    <xs:attribute name="id" type="xs:string" use="required"/>
+    <xs:attribute name="type" type="xs:string" use="required"/>
+    <xs:attribute name="note" type="xs:string" use="optional"/>
+    <xs:attribute name="custRef" type="xs:string" use="optional"/>
+    <xs:attribute name="refId" type="xs:string" use="optional"/>
+    <xs:attribute name="refUrl" type="xs:string" use="optional"/>
+    <xs:attribute name="ts" type="xs:string" use="optional"/>
+  </xs:complexType>
+
+  <!-- Resp block -->
+  <xs:complexType name="RespType">
+    <xs:sequence>
+      <xs:element name="Merchant" type="upi:MerchantType" minOccurs="0"/>
+      <xs:element name="FeatureSupported" minOccurs="0">
+        <xs:complexType>
+          <xs:attribute name="value" type="xs:string"/>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+    <xs:attribute name="reqMsgId" type="xs:string"/>
+    <xs:attribute name="result" type="xs:string"/>
+    <xs:attribute name="errCode" type="xs:string"/>
+    <xs:attribute name="maskName" type="xs:string"/>
+    <xs:attribute name="code" type="xs:string"/>
+    <xs:attribute name="type" type="xs:string"/>
+    <xs:attribute name="IFSC" type="xs:string"/>
+    <xs:attribute name="accType" type="xs:string"/>
+    <xs:attribute name="IIN" type="xs:string"/>
+    <xs:attribute name="pType" type="xs:string"/>
+  </xs:complexType>
+
+  <xs:complexType name="MerchantType">
+    <xs:sequence>
+      <xs:element name="Identifier" minOccurs="0">
+        <xs:complexType>
+          <xs:attribute name="subCode" type="xs:string"/>
+          <xs:attribute name="mid" type="xs:string"/>
+          <xs:attribute name="sid" type="xs:string"/>
+          <xs:attribute name="tid" type="xs:string"/>
+          <xs:attribute name="merchantType" type="xs:string"/>
+          <xs:attribute name="merchantGenre" type="xs:string"/>
+          <xs:attribute name="pinCode" type="xs:string"/>
+          <xs:attribute name="regIdNo" type="xs:string"/>
+          <xs:attribute name="tier" type="xs:string"/>
+          <xs:attribute name="onBoardingType" type="xs:string"/>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="Name" minOccurs="0">
+        <xs:complexType>
+          <xs:attribute name="brand" type="xs:string"/>
+          <xs:attribute name="legal" type="xs:string"/>
+          <xs:attribute name="franchise" type="xs:string"/>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="Ownership" minOccurs="0">
+        <xs:complexType>
+          <xs:attribute name="type" type="xs:string"/>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+</xs:schema>
